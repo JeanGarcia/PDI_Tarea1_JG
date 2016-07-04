@@ -98,8 +98,12 @@ inputElement.addEventListener("click", transform , false);
                 bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
                 
                 bitmap.palette = new Uint8Array(buffer,(bitmap.fileheader.bfOffBits-(NumbClr*4)), NumbClr*4);
-
                 bitmap.pixels = new Uint8Array(buffer, start);
+
+                if (bitmap.infoheader.biBitCount == 4 || bitmap.infoheader.biBitCount == 1) { 
+                    bitmap.pixels2 = [];
+                    bitmap.pixels2 = findtheindex(bitmap.infoheader.biBitCount); 
+                } 
 
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight);
                 
@@ -151,6 +155,24 @@ inputElement.addEventListener("click", transform , false);
                         }
                     }
 
+                } else {
+                    var cont=0;
+
+                    for (var y = 0; y < Height; ++y) { 
+                        for (var x = 0; x < Width; ++x) {
+
+                            var index1 = (x + Width * (Height - y)) * 4;
+                            var index2 = bitmap.pixels2[cont];
+                            cont++;
+
+                            data[index1] = palette[index2*4 + 2]; // el R
+                            data[index1 + 1] = palette[index2*4 + 1];// el G
+                            data[index1 + 2] = palette[index2*4]; // el B
+                            data[index1 + 3] = 255; // el alfa
+
+                        }
+                    }
+
                 } 
 
                 return imageData;
@@ -188,6 +210,53 @@ inputElement.addEventListener("click", transform , false);
             function dec2bin(dec){
                 //Transoformar la cadena de bits que leemos de a 8bits a solo gran string para poder manejarlo facilmente en el caso de 1 y 4bits.
                 return (dec >>> 0).toString(2);
+            }
+//  ------------------------------------------------------------------------------
+            function findtheindex(bit) {
+                // buscar los verdaderos valores de los indices.
+                var aux = [];
+                var cont = 0;
+                var bin;
+
+               for(var x=0; x < bitmap.pixels.length ; x++){
+
+                    bin = dec2bin(bitmap.pixels[x]);
+                    var size = bin.length; 
+
+                    if (size < 8){
+                    var zeros = 8 - size;
+                        for(var y=0; y < zeros; y++) 
+                            bin = "0" + bin;
+                    }
+
+                    if (bit == 4) {
+                        aux[cont] = parseInt(bin.slice(0,4),2);
+                        cont++;
+                        aux[cont] = parseInt(bin.slice(4,8),2);
+                        cont++;
+
+                    } else {
+                        aux[cont] = bin.slice(0,1);
+                        cont++;
+                        aux[cont] = bin.slice(1,2);
+                        cont++;
+                        aux[cont] = bin.slice(2,3);
+                        cont++;
+                        aux[cont] = bin.slice(3,4);
+                        cont++;
+                        aux[cont] = bin.slice(4,5);
+                        cont++;
+                        aux[cont] = bin.slice(5,6);
+                        cont++;
+                        aux[cont] = bin.slice(6,7);
+                        cont++;
+                        aux[cont] = bin.slice(7,8);
+                        cont++;
+                    }
+
+                }
+
+                return aux;
             }
 //  ------------------------------------------------------------------------------
             function transform() {
@@ -266,7 +335,29 @@ inputElement.addEventListener("click", transform , false);
 
                     bitmap.pixels = aux;
 
+                } else {
+
+                    var Height = bitmap.infoheader.biHeight;
+                    var Width = bitmap.infoheader.biWidth;
+                    var aux = [];
+                    aux = bitmap.pixels2;
+                    var cont= 0;
+
+                    for (var y = 0; y < Height; ++y) { 
+                        for (var x = 0; x < Width; ++x) {
+
+                            var index1 = (x + Width * (Height - y)) ;
+                            var index2 = x + bitmap.stride * y;
+
+                            aux[index1] = bitmap.pixels[index2];
+                        }
+                    }
+                    console.log(Height);
+                    console.log(bitmap.stride);
+                    console.log(aux);
+                    bitmap.pixels2 = aux;
                 }
+
             }
 //  ------------------------------------------------------------------------------
             function mirrorv () {
@@ -309,7 +400,26 @@ inputElement.addEventListener("click", transform , false);
 
                     bitmap.pixels = aux;
 
+                } else {
+
+                    var Height = bitmap.infoheader.biHeight;
+                    var Width = bitmap.infoheader.biWidth;
+                    var aux = bitmap.pixels2.slice();
+
+                    for (var y = 0; y < Height; ++y) { 
+                        for (var x = 0; x < Width; ++x) {
+
+                            var index1 = x + bitmap.stride * y;
+                            var index2 = ((bitmap.stride - 1) - x ) + bitmap.stride * y;
+
+                            aux[index1] = bitmap.pixels2[index2]; 
+                        }
+                    }
+
+                    bitmap.pixels2 = aux;
+
                 }
+
             }
 //  ------------------------------------------------------------------------------
             function rotatecw() {
@@ -334,12 +444,6 @@ inputElement.addEventListener("click", transform , false);
                         }
                     }
 
-                    bitmap.pixels = aux;
-                    bitmap.infoheader.biHeight = Width;
-                    bitmap.infoheader.biWidth =  Height;
-                    bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
-
-                    mirrorh();
 
                 } else if (bitmap.infoheader.biBitCount == 8) {
 
@@ -359,13 +463,32 @@ inputElement.addEventListener("click", transform , false);
                         }
                     }
 
-                    bitmap.pixels = aux;
-                    bitmap.infoheader.biHeight = Width;
-                    bitmap.infoheader.biWidth =  Height;
-                    bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
+                } else {
 
-                    mirrorh();
+                    var Height = bitmap.infoheader.biHeight;
+                    var Width = bitmap.infoheader.biWidth;
+                    var aux = bitmap.pixels.slice();
+                    var cont = 0;
+
+                    for (var y = 0; y < Width; ++y) { 
+                        for (var x = 0; x < Height; ++x) {
+
+                            var index1 = y + bitmap.stride * x;
+
+                            aux[cont] = bitmap.pixels[index1]; 
+                            cont++;
+
+                        }
+                    }
+
                 }
+
+                bitmap.pixels = aux;
+                bitmap.infoheader.biHeight = Width;
+                bitmap.infoheader.biWidth =  Height;
+                bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
+
+                mirrorh();
 
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight);
 
