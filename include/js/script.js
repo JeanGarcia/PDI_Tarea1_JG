@@ -1,3 +1,4 @@
+// Create by Jean Garcia
 
 // Cuando el usuario escoge un archivo, se llama a la funcion handleFiles.
 var inputElement = document.getElementById("input");
@@ -72,9 +73,7 @@ inputElement.addEventListener("click", transform , false);
                     bitmap.pixels2 = [];
                     bitmap.pixels2 = findtheindex(bitmap.infoheader.biBitCount); // se busca los indices.
                 } 
-                console.log(bitmap.palette);
-                console.log(bitmap.pixels);
-                console.log(bitmap.pixels2);
+
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight);
                 
             }
@@ -97,7 +96,7 @@ inputElement.addEventListener("click", transform , false);
                         for (var x = 0; x < Width; ++x) {
 
                             var index1 = (x + Width * (Height - y)) * 4;
-                            var index2 = x * 3 + stride * y;
+                            var index2 = x * 3 + (Width*3) * y;
                             data[index1] = bmpdata[index2 + 2];
                             data[index1 + 1] = bmpdata[index2 + 1];
                             data[index1 + 2] = bmpdata[index2];
@@ -249,7 +248,7 @@ inputElement.addEventListener("click", transform , false);
                         for (var x = 0; x < Width; ++x) {
 
                             var index1 = (x + Width * (Height - y)) * 3;
-                            var index2 = x * 3 + bitmap.stride * y;
+                            var index2 = x * 3 + (Width * 3) * y;
 
                             aux[index1] = bitmap.pixels[index2];
                             aux[index1 + 1] = bitmap.pixels[index2 + 1];
@@ -306,8 +305,8 @@ inputElement.addEventListener("click", transform , false);
                     for (var y = 0; y < Height; ++y) { 
                         for (var x = 0; x < Width; ++x) {
 
-                            var index1 = x * 3 + bitmap.stride * y;
-                            var index2 = ((bitmap.stride - 1) - (x * 3) ) + bitmap.stride * y;
+                            var index1 = x * 3 + (Width * 3) * y;
+                            var index2 = (((Width * 3) - 1) - (x * 3) ) + (Width * 3) * y;
 
                             aux[index1] = bitmap.pixels[index2 - 2];  // B 
                             aux[index1 + 1] = bitmap.pixels[index2 - 1]; // G
@@ -366,7 +365,7 @@ inputElement.addEventListener("click", transform , false);
                     for (var y = 0; y < Width; ++y) { 
                         for (var x = 0; x < Height; ++x) {
 
-                            var index1 = y * 3 + bitmap.stride * x;
+                            var index1 = y * 3 + (Width * 3) * x;
 
                             aux[cont] = bitmap.pixels[index1];  // B
                             aux[cont + 1] = bitmap.pixels[index1 + 1]; // G
@@ -412,13 +411,12 @@ inputElement.addEventListener("click", transform , false);
                 }
 
                 // se actualizan los valores.
-                
+
                 bitmap.infoheader.biHeight = Width;
                 bitmap.infoheader.biWidth =  Height;
                 bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
 
-                mirrorh(); // esto es debido a que la data que teniamos estaba volteada.
-
+                 mirrorh(); // esto es debido a que la data que teniamos estaba volteada.
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight); 
 
             }
