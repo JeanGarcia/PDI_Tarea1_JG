@@ -1,6 +1,8 @@
 # PDI_Tarea1_JG
 Tarea 1 de PDI, donde se hace el manejo de carga, rotación (CW, CCW), negativo, y espejo ( vertical, horizontal) de imagines bmp de 1,4,8 y 24 bits.
 
+NOTA Importante: Sin querer modifique el archivo "script.js" para hacer la tarea dos, y todavía no sabía si hizo la copia o lo descargó, sin embargo creo que aun puede descargar la versión del 5 de Julio.
+
 # Autor
 
 Jean García Lunardi C.I 23.868.370
