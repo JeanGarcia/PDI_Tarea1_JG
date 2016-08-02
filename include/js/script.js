@@ -39,7 +39,7 @@ inputElement.addEventListener("click", transform , false);
             function getBMP(buffer) { 
             // se obtiene el mapa de bits de la imagen .
                 var datav = new DataView(buffer);
-                var npadding, resto, cont=0, cont2=0, start;
+
                 // Se lee y almacena la cabecera.
                 bitmap.fileheader = {};
                 bitmap.fileheader.bfType = datav.getUint16(0, true);
@@ -62,89 +62,17 @@ inputElement.addEventListener("click", transform , false);
                 bitmap.infoheader.biClrUsed = datav.getUint32(46, true);
                 bitmap.infoheader.biClrImportant = datav.getUint32(50, true);
 
-                start = bitmap.fileheader.bfOffBits, NumbClr = bitmap.infoheader.biClrUsed, off= 54;
+
+                var start = bitmap.fileheader.bfOffBits, NumbClr = bitmap.infoheader.biClrUsed, off= 54;
+                bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
                 
                 bitmap.palette = new Uint8Array(buffer,(bitmap.fileheader.bfOffBits-(NumbClr*4)), NumbClr*4);
+                bitmap.pixels = new Uint8Array(buffer, start);
 
-                if (bitmap.infoheader.biBitCount == 24) { // EN 24 BITS - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                    npadding = (bitmap.infoheader.biWidth*3) % 4;
-
-                    if(npadding > 0) { // CON PADDDING!.
-
-                        resto = 4-npadding;
-
-                        bitmap.pixels = new Uint8Array (bitmap.infoheader.biHeight*bitmap.infoheader.biWidth * 3);
-
-                        for (var y = 0; y < bitmap.infoheader.biHeight; y++) { 
-                            for (var x = 0; x < bitmap.infoheader.biWidth; x++) {
-
-                                bitmap.pixels[cont] = datav.getUint8(start + cont2,true);
-                                bitmap.pixels[cont + 1] = datav.getUint8(start+ cont2 + 1,true);
-                                bitmap.pixels[cont + 2] = datav.getUint8(start+ cont2 + 2,true);
-                                cont = cont + 3;
-                                cont2 = cont2 + 3;
-
-                            }
-                            cont2 = cont2 + resto;
-                        }
-                    } else {
-                        bitmap.pixels = new Uint8Array(buffer, start); // SIN PADDING!!!.
-                    }
-
-                } else if (bitmap.infoheader.biBitCount == 8) { // EN 8 BITS  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                    npadding = (bitmap.infoheader.biWidth) % 4;
-
-                    if(npadding > 0) { // CON PADDDING!.
-
-                        resto = 4-npadding;
-
-                        bitmap.pixels = new Uint8Array (bitmap.infoheader.biHeight * bitmap.infoheader.biWidth);
-
-                        for (var y = 0; y < bitmap.infoheader.biHeight; y++) { 
-                            for (var x = 0; x < bitmap.infoheader.biWidth; x++) {
-
-                                bitmap.pixels[cont] = datav.getUint8(start + cont2,true);
-                                cont++;
-                                cont2++;
-
-                            }
-                            cont2 = cont2 + resto;
-                        }
-                        console.log(cont);
-                        console.log(cont2);
-                    } else {
-                        bitmap.pixels = new Uint8Array(buffer, start); // SIN PADDING!!!.
-                    }
-
-                } else if(bitmap.infoheader.biBitCount == 4) { // PADDING EN 4 BITS  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                    npadding = (bitmap.infoheader.biWidth) % 4;
-
-                    if(npadding > 0) { // CON PADDDING!.
-
-                        resto = 4-npadding;
-
-                        bitmap.pixels = new Uint8Array (bitmap.infoheader.biHeight * bitmap.infoheader.biWidth);
-
-                        for (var y = 0; y < bitmap.infoheader.biHeight; y++) { 
-                            for (var x = 0; x < bitmap.infoheader.biWidth; x++) {
-
-                                bitmap.pixels[cont] = datav.getUint8(start + cont2,true);
-                                cont++;
-                                cont2++;
-
-                            }
-                            cont2 = cont2 + resto;
-                        }
-
-                    } else {  // SIN PADDING!!!.
-                        bitmap.pixels2 = [];
-                        bitmap.pixels2 = findtheindex(bitmap.infoheader.biBitCount); // se busca los indices.
-                    }
-                    
-                }
+                if (bitmap.infoheader.biBitCount == 4 || bitmap.infoheader.biBitCount == 1) { 
+                    bitmap.pixels2 = [];
+                    bitmap.pixels2 = findtheindex(bitmap.infoheader.biBitCount); // se busca los indices.
+                } 
 
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight);
                 
@@ -158,6 +86,7 @@ inputElement.addEventListener("click", transform , false);
                 var imageData = ctx.createImageData(Width, Height);
                 var data = imageData.data;
                 var bmpdata = bitmap.pixels;
+                var stride = bitmap.stride;
                 var palette = bitmap.palette;
 
 
@@ -485,6 +414,7 @@ inputElement.addEventListener("click", transform , false);
 
                 bitmap.infoheader.biHeight = Width;
                 bitmap.infoheader.biWidth =  Height;
+                bitmap.stride = Math.floor((bitmap.infoheader.biBitCount * bitmap.infoheader.biWidth + 31) / 32) * 4;
 
                  mirrorh(); // esto es debido a que la data que teniamos estaba volteada.
                 resizeCanvas(bitmap.infoheader.biWidth,bitmap.infoheader.biHeight); 
